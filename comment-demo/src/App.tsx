@@ -1,6 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import classnames from 'classnames'
+import { nanoid } from 'nanoid'
+import moment from 'moment'
+import axios from 'axios'
 
 import './App.scss'
 import avatar from './images/bozai.png'
@@ -13,45 +16,45 @@ import avatar from './images/bozai.png'
  */
 
 // 评论列表数据
-const defaultList = [
-  {
-    // 评论id
-    rpid: 3,
-    // 用户信息
-    user: {
-      uid: '13258165',
-      avatar: 'https://github.com/zcy1024/SuiStudy/blob/main/coin_study/imgs/WUKONG.png?raw=true',
-      uname: 'Black Myth: WuKong',
-    },
-    // 评论内容
-    content: '你们一定都听过，他的故事！',
-    // 评论时间
-    ctime: '08-20 10:00',
-    like: 820,
-  },
-  {
-    rpid: 2,
-    user: {
-      uid: '36080105',
-      avatar: 'https://github.com/zcy1024/SuiStudy/blob/main/coin_study/imgs/WUKONG.png?raw=true',
-      uname: '天命人',
-    },
-    content: '以霹雳手段，行菩萨心肠，这才是你的，天命！',
-    ctime: '08-20 00:00',
-    like: 1024,
-  },
-  {
-    rpid: 1,
-    user: {
-      uid: '30009257',
-      avatar,
-      uname: '黑马前端',
-    },
-    content: '学前端就来黑马',
-    ctime: '06-21 00:00',
-    like: 666,
-  },
-]
+// const defaultList = [
+//   {
+//     // 评论id
+//     rpid: '3',
+//     // 用户信息
+//     user: {
+//       uid: '13258165',
+//       avatar: 'https://github.com/zcy1024/SuiStudy/blob/main/coin_study/imgs/WUKONG.png?raw=true',
+//       uname: 'Black Myth: WuKong',
+//     },
+//     // 评论内容
+//     content: '你们一定都听过，他的故事！',
+//     // 评论时间
+//     ctime: '08-20 10:00',
+//     like: 820,
+//   },
+//   {
+//     rpid: '2',
+//     user: {
+//       uid: '36080105',
+//       avatar: 'https://github.com/zcy1024/SuiStudy/blob/main/coin_study/imgs/WUKONG.png?raw=true',
+//       uname: '天命人',
+//     },
+//     content: '以霹雳手段，行菩萨心肠，这才是你的，天命！',
+//     ctime: '08-20 00:00',
+//     like: 1024,
+//   },
+//   {
+//     rpid: '1',
+//     user: {
+//       uid: '30009257',
+//       avatar,
+//       uname: '黑马前端',
+//     },
+//     content: '学前端就来黑马',
+//     ctime: '06-21 00:00',
+//     like: 666,
+//   },
+// ]
 // 当前登录用户信息
 const user = {
   // 用户id
@@ -77,11 +80,70 @@ const tabs = [
   { type: 'hot', text: '最热' },
 ]
 
-const App = () => {
-  const [commentList, setCommentList] = useState(defaultList)
+function useGetList(URL: string) {
+  const [commentList, setCommentList] = useState([])
+  useEffect(() => {
+    async function getCommentList() {
+      const res = await axios.get(URL)
+      setCommentList(res.data)
+    }
+    getCommentList()
+  }, [])
+  return {
+    commentList,
+    setCommentList
+  }
+}
 
-  const clickDelete = (rpid: number) => {
-    setCommentList(commentList.filter(item => item.rpid !== rpid))
+function Item({ item, onDel }) {
+  return (
+    <div className="reply-item">
+      {/* 头像 */}
+      <div className="root-reply-avatar">
+        <div className="bili-avatar">
+          <img
+            className="bili-avatar-img"
+            alt=""
+            src={item.user.avatar}
+          />
+        </div>
+      </div>
+
+      <div className="content-wrap">
+        {/* 用户名 */}
+        <div className="user-info">
+          <div className="user-name">{item.user.uname}</div>
+        </div>
+        {/* 评论内容 */}
+        <div className="root-reply">
+          <span className="reply-content">{item.content}</span>
+          <div className="reply-info">
+            {/* 评论时间 */}
+            <span className="reply-time">{item.ctime}</span>
+            {/* 评论数量 */}
+            <span className="reply-time">点赞数:{item.like}</span>
+            {
+              user.uid === item.user.uid
+              && 
+              <span className="delete-btn" onClick={() => onDel(item.rpid)}>
+                删除
+              </span>
+            }
+
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const App = () => {
+  // const [commentList, setCommentList] = useState(defaultList)
+
+  const {commentList, setCommentList} = useGetList("http://localhost:3004/list")
+
+  const clickDelete = (rpid: string) => {
+    setCommentList(commentList.filter((item: any) => item.rpid !== rpid))
   }
 
   const [type, setType] = useState("time")
@@ -89,9 +151,36 @@ const App = () => {
   const clickTab = (curType: string) => {
     setType(curType)
     if (curType === "hot")
-      setCommentList(commentList.sort((itema, itemb) => itema.like > itemb.like ? -1 : 1))
+      setCommentList(commentList.sort((itema: any, itemb: any) => itema.like > itemb.like ? -1 : 1))
     else
-      setCommentList(commentList.sort((itema, itemb) => itema.ctime > itemb.ctime ? -1 : 1))
+      setCommentList(commentList.sort((itema: any, itemb: any) => itema.ctime > itemb.ctime ? -1 : 1))
+  }
+
+  const [content, setContent] = useState('')
+  const commentRef = useRef(null)
+
+  const handlePublish = () => {
+    setCommentList([
+      ...commentList,
+      {
+        // 评论id
+        rpid: nanoid(),
+        // 用户信息
+        user: {
+          uid: '369963999',
+          avatar: 'https://github.com/zcy1024/SuiStudy/blob/main/coin_study/imgs/WUKONG.png?raw=true',
+          uname: 'StarrySky',
+        },
+        // 评论内容
+        content,
+        // 评论时间
+        ctime: moment().format("MM-DD HH:mm"),
+        like: 0,
+      }
+    ])
+    setContent('')
+    let dom: any = commentRef.current!
+    dom.focus();
   }
 
   return (
@@ -127,55 +216,20 @@ const App = () => {
             <textarea
               className="reply-box-textarea"
               placeholder="发一条友善的评论"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              ref={commentRef}
             />
             {/* 发布按钮 */}
             <div className="reply-box-send">
-              <div className="send-text">发布</div>
+              <div className="send-text" onClick={handlePublish}>发布</div>
             </div>
           </div>
         </div>
         {/* 评论列表 */}
         <div className="reply-list">
           {/* 评论项 */}
-          {commentList.map(item => (
-            <div className="reply-item" key={item.rpid}>
-            {/* 头像 */}
-            <div className="root-reply-avatar">
-              <div className="bili-avatar">
-                <img
-                  className="bili-avatar-img"
-                  alt=""
-                  src={item.user.avatar}
-                />
-              </div>
-            </div>
-
-            <div className="content-wrap">
-              {/* 用户名 */}
-              <div className="user-info">
-                <div className="user-name">{item.user.uname}</div>
-              </div>
-              {/* 评论内容 */}
-              <div className="root-reply">
-                <span className="reply-content">{item.content}</span>
-                <div className="reply-info">
-                  {/* 评论时间 */}
-                  <span className="reply-time">{item.ctime}</span>
-                  {/* 评论数量 */}
-                  <span className="reply-time">点赞数:{item.like}</span>
-                  {
-                    user.uid === item.user.uid
-                    && 
-                    <span className="delete-btn" onClick={() => clickDelete(item.rpid)}>
-                      删除
-                    </span>
-                  }
-
-                </div>
-              </div>
-            </div>
-          </div>
-          ))}
+          {commentList.map((item: any) => <Item item={item} onDel={clickDelete} key={item.rpid}/>)}
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { createContext, useContext, useEffect, useRef, useState } from "react"
 
 import "./App.css"
 
@@ -29,6 +29,78 @@ function Button() {
 }
 const Buttonone = () => {
     return <button>click one!</button>
+}
+
+function Son(props: any) {
+    console.log(props)
+    const meg = "this is message from son"
+    return (
+        <div>
+            this is son, {props.name}, {props.children}
+            <button onClick={() => props.onPrintMeg(meg)}>sendMeg</button>
+        </div>
+    )
+}
+
+function A(props: any) {
+    const name = "this is B name from A"
+
+    return (
+        <div>
+            this is A compnent,
+            <button onClick={() => props.onGetAName(name)}>send</button>
+        </div>
+    )
+}
+
+function B(props: any) {
+    return (
+        <div>
+            this is B compnent, {props.name}
+        </div>
+    )
+}
+
+const MsgContext = createContext("")
+
+function C() {
+    return (
+        <div>
+            <D />
+        </div>
+    )
+}
+
+function D() {
+    const msg: any = useContext(MsgContext)
+    return (
+        <div>
+            this is D compnent, {msg}
+        </div>
+    )
+}
+
+function Timing() {
+    useEffect(() => {
+        const timer = setInterval(() => {
+            console.log("Timing...")
+        }, 1000)
+
+        return () => {
+            clearInterval(timer)
+        }
+    }, [])
+
+    return <div>this is Timing</div>
+}
+
+function useToggle() {
+    const [boolCheck, setBoolCheck] = useState(true)
+    const toggle = () => setBoolCheck(!boolCheck)
+    return {
+        boolCheck,
+        toggle
+    }
 }
 
 function App() {
@@ -67,6 +139,43 @@ function App() {
         color: "red",
         fontSize: "50px"
     }
+
+    const [value, setValue] = useState('')
+
+    const inputRef = useRef(null)
+    const testRef = () => {
+        console.log(inputRef.current)
+        console.dir(inputRef.current)
+    }
+
+    const sonName = "this is son from App"
+    const [meg, setMeg] = useState("this is span in son")
+    const printMeg = (meg: string) => {
+        console.log(meg)
+        setMeg(meg)
+    }
+
+    const [bName, setBName] = useState('')
+    // const getAName = (name: string) => {
+    //     // console.log(name)
+    //     setBName(name)
+    // }
+
+    const URL = "https://geek.itheima.net/v1_0/channels"
+    const [fetchList, setFetchList] = useState([])
+    useEffect(() => {
+        async function getList() {
+            const res = await fetch(URL)
+            const list = await res.json()
+            console.log(list)
+            setFetchList(list.data.channels)
+        }
+        getList()
+    }, [])
+
+    const [showTiming, setShowTiming] = useState(true)
+
+    const {boolCheck, toggle} = useToggle()
     
     return (
         <div>
@@ -97,6 +206,30 @@ function App() {
             <br />
             <span className="styleControl">this is style control in css</span>
             <br />
+            <input type="text" value={value} onChange={(e) => setValue(e.target.value)}></input>
+            <br />
+            <input type="text" ref={inputRef} />
+            <button onClick={testRef}>testRef</button>
+            <br />
+            <Son name={sonName} onPrintMeg={printMeg}>
+                <span>{meg}</span>
+            </Son>
+            <br />
+            <A onGetAName={setBName} />
+            <B name={bName}/>
+            <MsgContext.Provider value={bName}>
+                <C />
+            </MsgContext.Provider>
+            <ul>
+                {
+                    fetchList.map((item: any) => <li key={item.id}>{item.name}</li>)
+                }
+            </ul>
+            { showTiming && <Timing /> }
+            <button onClick={() => setShowTiming(!showTiming)}>卸载Timing组件</button>
+            <br />
+            {boolCheck && <div>this is controled by boolCheck</div>}
+            <button onClick={toggle}>control boolCheck</button>
         </div>
     )
 }

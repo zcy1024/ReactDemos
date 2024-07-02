@@ -1,0 +1,37 @@
+{
+    "list": [
+        {
+        "rpid": "3",
+        "user": {
+            "uid": "13258165",
+            "avatar": "https://github.com/zcy1024/SuiStudy/blob/main/coin_study/imgs/WUKONG.png?raw=true",
+            "uname": "Black Myth: WuKong"
+        },
+        "content": "你们一定都听过，他的故事！",
+        "ctime": "08-20 10:00",
+        "like": 820
+        },
+        {
+        "rpid": "2",
+        "user": {
+            "uid": "36080105",
+            "avatar": "https://github.com/zcy1024/SuiStudy/blob/main/coin_study/imgs/WUKONG.png?raw=true",
+            "uname": "天命人"
+        },
+        "content": "以霹雳手段，行菩萨心肠，这才是你的，天命！",
+        "ctime": "08-20 00:00",
+        "like": 1024
+        },
+        {
+        "rpid": "1",
+        "user": {
+            "uid": "30009257",
+            "avatar": "http://toutiao.itheima.net/resources/images/98.jpg",
+            "uname": "黑马前端"
+        },
+        "content": "学前端就来黑马",
+        "ctime": "06-21 00:00",
+        "like": 666
+        }
+    ]
+}
