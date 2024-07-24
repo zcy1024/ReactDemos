@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react"
 import * as echarts from "echarts"
 
-export default function BarChart({ title }) {
+export default function BarChart(params: any) {
+    const { title } = params.title
+
     const chartRef = useRef(null)
 
     useEffect(() => {

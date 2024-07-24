@@ -6,7 +6,7 @@ import logo from '../../assets/logo.png'
 import './index.scss'
 
 const Login = () => {
-    const dispatch = useDispatch()
+    const dispatch = useDispatch<any>()
     const navigate = useNavigate()
 
     const onFinish = async(values: any) => {

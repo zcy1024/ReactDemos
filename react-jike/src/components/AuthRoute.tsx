@@ -1,7 +1,8 @@
 import { Navigate } from "react-router-dom"
 import { getToken } from "../utils"
 
-export default function AuthRoute({ children }) {
+export default function AuthRoute(params: any) {
+    const { children } = params
     const token = getToken()
     if (token) {
         return <>{ children }</>

@@ -11,28 +11,24 @@ import {
     message
 } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import './index.scss'
 
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 
-import { useState, useEffect, useRef } from 'react'
-import { getChannelsAPI, createArticleAPI } from '../../apis/article'
+import { useState, useRef, useEffect } from 'react'
+import { createArticleAPI, getArticleByIdAPI, updateArticleAPI } from '../../apis/article'
+import { useChannel } from '../../hooks/useChannel'
 
 const { Option } = Select
 
 const Publish = () => {
-    const [channelList, setChannelList] = useState([])
-    useEffect(() => {
-        const getChannelList = async () => {
-            const res = await getChannelsAPI()
-            setChannelList(res.data.channels)
-        }
-        getChannelList()
-    }, [])
+    const navigate = useNavigate()
 
-    const onFinish = (formValue: any) => {
+    const { channelList } = useChannel()
+
+    const onFinish = async (formValue: any) => {
         if (imageList.length !== imageType)
             return message.warning("封面类型和图片数量不匹配！！！")
 
@@ -43,11 +39,12 @@ const Publish = () => {
             content,
             cover: {
                 type: imageType,
-                images: imageList.map((item: any) => item.response.data.url)
+                images: imageList.map((item: any) => item.url ? item.url : item.response.data.url)
             },
             channel_id
         }
-        createArticleAPI(reqData)
+        !articleID ? await createArticleAPI(reqData) : await updateArticleAPI(articleID, reqData)
+        navigate("/article")
     }
 
     const [imageList, setImageList] = useState([])
@@ -57,12 +54,12 @@ const Publish = () => {
         setImageList(value.fileList)
 
         const length = value.fileList.length
-        const parent = imageRef.current.nativeElement.children[0]
-        const child = parent.children[length - 1]
+        // const parent = imageRef.current.nativeElement.children[0]
+        // const child = parent.children[length - 1]
         // console.log(value.fileList.splice(0, length - 1))
         if (value.fileList[length - 1].status === "error") {
             // console.log(child)
-            parent.removeChild(child)
+            // parent.removeChild(child)
             setImageList(imageList.splice(0, length - 1))
             message.warning("图片太大了！！！")
         }
@@ -73,13 +70,32 @@ const Publish = () => {
         setImageType(e.target.value)
     }
 
+    const [searchParams] = useSearchParams()
+    const articleID = searchParams.get("id")
+    const [form] = Form.useForm()
+    useEffect(() => {
+        async function getArticleById(articleID: string) {
+            const res = await getArticleByIdAPI(articleID)
+            // console.log(res)
+            form.setFieldsValue({
+                ...res.data,
+                type: res.data.cover.type
+            })
+            setImageType(res.data.cover.type)
+            setImageList(res.data.cover.images.map((url: string) => {
+                return { url }
+            }))
+        }
+        articleID && getArticleById(articleID)
+    }, [articleID, form])
+
     return (
         <div className="publish">
             <Card
                 title={
                     <Breadcrumb items={[
                         { title: <Link to={'/'}>首页</Link> },
-                        { title: '发布文章' },
+                        { title: `${articleID ? "编辑" : "发布"}文章` },
                     ]}
                     />
                 }
@@ -89,6 +105,7 @@ const Publish = () => {
                     wrapperCol={{ span: 16 }}
                     initialValues={{ type: imageType }}
                     onFinish={onFinish}
+                    form={form}
                 >
                     <Form.Item
                         label="标题"
@@ -124,6 +141,7 @@ const Publish = () => {
                                 onChange={onUploadChange}
                                 maxCount={imageType}
                                 ref={imageRef}
+                                fileList={imageList}
                             >
                                 <div style={{ marginTop: 8 }}>
                                     <PlusOutlined />
@@ -146,7 +164,7 @@ const Publish = () => {
                     <Form.Item wrapperCol={{ offset: 4 }}>
                         <Space>
                             <Button size="large" type="primary" htmlType="submit">
-                                发布文章
+                                {`${articleID ? "更新" : "发布"}文章`}
                             </Button>
                         </Space>
                     </Form.Item>

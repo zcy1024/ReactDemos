@@ -14,3 +14,33 @@ export function createArticleAPI(data: any) {
         data
     })
 }
+
+export function getArticleListAPI(params: any) {
+    return request({
+        url: "/mp/articles",
+        method: "GET",
+        params
+    })
+}
+
+export function deleteArticleAPI(id: string) {
+    return request({
+        url: `/mp/articles/${id}`,
+        method: "DELETE"
+    })
+}
+
+export function getArticleByIdAPI(id: string) {
+    return request({
+        url: `/mp/articles/${id}`,
+        method: "GET"
+    })
+}
+
+export function updateArticleAPI(id: string, data: any) {
+    return request({
+        url: `/mp/articles/${id}?draft=false`,
+        method: "PUT",
+        data
+    })
+}

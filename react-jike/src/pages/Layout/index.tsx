@@ -41,7 +41,7 @@ const GeekLayout = () => {
 
     const location = useLocation()
 
-    const dispatch = useDispatch()
+    const dispatch = useDispatch<any>()
     
     useEffect(() => {
         dispatch(fetchUserInfo())
@@ -72,7 +72,8 @@ const GeekLayout = () => {
                     <Menu
                         mode="inline"
                         theme="dark"
-                        defaultSelectedKeys={[location.pathname]}
+                        // defaultSelectedKeys={[location.pathname]}
+                        selectedKeys={[location.pathname]}
                         items={items}
                         style={{ height: '100%', borderRight: 0 }}
                         onClick={onMenuClick}></Menu>
